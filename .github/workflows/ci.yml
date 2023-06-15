@@ -35,11 +35,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
         with:
-          persist-credentials: true
-      - uses: taiki-e/github-actions/install-rust@main
-        with:
-          toolchain: stable
+            toolchain: nightly
+            override: true
+            components: rustfmt, clippy
       - run: cargo build
       - uses: taiki-e/create-gh-release-action@v1
         with:
