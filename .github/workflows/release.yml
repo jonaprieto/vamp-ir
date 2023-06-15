@@ -50,7 +50,7 @@ jobs:
         with:
           changelog: CHANGELOG.md
           branch: main
-          ref: main
+          ref: ${{ github.ref }}
           draft: ${{ github.event.inputs.release-type == 'pre-release' }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
