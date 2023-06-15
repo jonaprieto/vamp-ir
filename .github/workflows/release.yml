@@ -45,7 +45,7 @@ jobs:
         with:
           changelog: CHANGELOG.md
           branch: main
-          # ref: ${{ github.event.inputs.tag }}
+          ref: refs/tags/${{ github.event.inputs.tag }}
           draft: ${{ github.event.inputs.release-type == 'pre-release' }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
