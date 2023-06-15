@@ -51,7 +51,6 @@ jobs:
           changelog: CHANGELOG.md
           branch: main
           draft: ${{ github.event.inputs.release-type == 'pre-release' }}
-          title: ${{ github.event.inputs.tag }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
@@ -101,7 +100,7 @@ jobs:
         run: |
           cargo fmt --all -- --check
           cargo clippy
-          
+
       - name: Show rust toolchain info
         run: rustup show
 
