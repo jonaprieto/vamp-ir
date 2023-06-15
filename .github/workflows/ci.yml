@@ -41,6 +41,8 @@ jobs:
             toolchain: nightly
             override: true
             components: rustfmt, clippy
+      - name: Show rust toolchain info
+        run: rustup show
       - run: cargo build
       - uses: taiki-e/create-gh-release-action@v1
         with:
