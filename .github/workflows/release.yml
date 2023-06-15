@@ -16,6 +16,10 @@ on:
         description: "version to release"
         required: true
         default: "v0.0.0"
+      rust-version:
+          type: string
+          required: false
+          default: nightly
 
   push:
     tags:
@@ -41,20 +45,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-          components: rustfmt
-      - name: Show rust toolchain info
-        run: rustup show
-
-      - name: Show rustup
-        run: rustup toolchain install stable --profile minimal
-
-      - run: cargo build
-
       - name: Create a draft release
         uses: taiki-e/create-gh-release-action@v1
         with:
@@ -86,6 +76,38 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install latest nightly
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ inputs.rust-version }}
+          override: true
+          components: rustfmt
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: Lint
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy
+          
+      - name: Show rust toolchain info
+        run: rustup show
+
+      - name: Show rustup
+        run: rustup toolchain install stable --profile minimal
+      - run: cargo build
       - uses: taiki-e/upload-rust-binary-action@v1
         with:
           bin: vamp-ir
