@@ -1,17 +1,81 @@
-on: [push]
+name: Release
 
-name: CI
+permissions:
+  contents: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: the repository ref to build
+        required: true
+        default: main
+  release:
+    types: [created]
+  push:
+    tags:
+      - v[0-9]+.*
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+  RUSTFLAGS: -D warnings
+  RUSTUP_MAX_RETRIES: 10
+
+defaults:
+  run:
+    shell: bash
 
 jobs:
-  build_and_test:
-    name: Rust project
+  create-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+      - uses: taiki-e/github-actions/install-rust@main
         with:
           toolchain: stable
-      - uses: actions-rs/cargo@v1
+      - run: cargo build
+      - uses: taiki-e/create-gh-release-action@v1
         with:
-          command: build
-          args: --release --all-features
+          changelog: CHANGELOG.md
+          title: $version
+          branch: main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  upload-assets:
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            build_tool: cargo
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            build_tool: cargo
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            build_tool: cargo
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            build_tool: cargo
+          # Universal macOS binary is supported as universal-apple-darwin.
+          - target: universal-apple-darwin
+            os: macos-latest
+            build_tool: cargo
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          # (required) Comma-separated list of binary names (non-extension portion of filename) to build and upload.
+          # Note that glob pattern is not supported yet.
+          bin: vamp-ir
+          # (optional) Target triple, default is host triple.
+          target: ${{ matrix.target }}
+          include: LICENSE-APACHE,LICENSE-MIT,README.md
+          # (required) GitHub token for uploading assets to GitHub Releases.
+          token: ${{ secrets.GITHUB_TOKEN }}
