@@ -10,11 +10,14 @@ on:
         description: the repository ref to build
         required: true
         default: main
-  release:
-    types: [created]
+  # release:
+  #   types: [created]
   push:
-    tags:
-      - v[0-9]+.*
+    branches:
+      - main
+  #   tags:
+  #     - v[0-9]+.*
+
 env:
   CARGO_INCREMENTAL: 0
   CARGO_NET_RETRY: 10
@@ -41,7 +44,7 @@ jobs:
       - uses: taiki-e/create-gh-release-action@v1
         with:
           changelog: CHANGELOG.md
-          title: $version
+          # title: $version
           branch: main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
