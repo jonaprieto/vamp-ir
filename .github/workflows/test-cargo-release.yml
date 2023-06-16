@@ -1,0 +1,35 @@
+# Build VampIR binary with all its dependencies statically linked
+
+name: test-cargo-release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+        - main
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+  RUSTFLAGS: -D warnings
+
+defaults:
+  run:
+    shell: bash
+jobs:
+    test-musl:
+        runs-on: ubuntu-latest
+        container: messense/rust-musl-cross:x86_64-musl
+        steps:
+        - uses: actions/checkout@v3
+        - name: Rust Cache
+          uses: Swatinem/rust-cache@v2.4.0
+        - name: Run tests
+          run: cargo test
+        - name: release
+          if: success()
+          run: cargo build --release --target=x86_64-unknown-linux-musl

@@ -8,18 +8,17 @@ on:
     inputs:
       release-type:
         type: choice
-        default: "pre-release"
+        default: "draft"
         options:
-          - "pre-release"
+          - "draft"
           - "release"
       tag:
         description: "version to release"
         required: true
         default: "v0.0.0"
-      rust-version:
-        type: string
-        required: false
-        default: nightly
+  push:
+    branches:
+      - main
 
 env:
   CARGO_INCREMENTAL: 0
@@ -34,79 +33,76 @@ defaults:
     shell: bash
 
 jobs:
-  create-release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - name: Create a draft release
-        uses: taiki-e/create-gh-release-action@v1
-        with:
-          changelog: CHANGELOG.md
-          branch: main
-          ref: refs/tags/${{ github.event.inputs.tag }}
-          draft: ${{ github.event.inputs.release-type == 'pre-release' }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+  # create-release:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Create a draft release
+  #       uses: taiki-e/create-gh-release-action@v1
+  #       with:
+  #         changelog: CHANGELOG.md
+  #         branch: main
+  #         # ref: refs/tags/${{ github.event.inputs.tag }}
+  #         draft: ${{ github.event.inputs.release-type == 'pre-release' }}
+  #         token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
     strategy:
       matrix:
         include:
-          - target: aarch64-unknown-linux-gnu
+          - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
-            build_tool: cargo
-          - target: aarch64-apple-darwin
-            os: macos-latest
-            build_tool: cargo
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-            build_tool: cargo
-          - target: x86_64-apple-darwin
-            os: macos-latest
-            build_tool: cargo
-          - target: universal-apple-darwin
-            os: macos-latest
-            build_tool: cargo
+            toolchain: stable
+          # - target: aarch64-unknown-linux-gnu
+          #   os: ubuntu-latest
+          #   build_tool: cargo
+          # - target: aarch64-apple-darwin
+          #   os: macos-latest
+          #   build_tool: cargo
+          # - target: x86_64-unknown-linux-gnu
+          #   os: ubuntu-latest
+          #   build_tool: cargo
+          # - target: x86_64-apple-darwin
+          #   os: macos-latest
+          #   build_tool: cargo
+          # - target: universal-apple-darwin
+          #   os: macos-latest
+          #   build_tool: cargo
+
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.4.0
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
         with:
+          toolchain: ${{ matrix.toolchain }}
           profile: minimal
-          toolchain: ${{ github.event.inputs.rust-version }}
+          target: ${{ matrix.target }}
           override: true
           components: rustfmt
+          # https://rust-lang.github.io/rustup-components-history/
 
-      - name: Set up cargo cache
-        uses: actions/cache@v3
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/            
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-cargo-
-      - name: Lint
-        run: |
-          cargo fmt --all -- --check
-          cargo clippy
+      # - name: Lint
+      #   run: |
+      #     cargo fmt --all -- --check
+      #     cargo clippy
 
       - name: Show rust toolchain info
         run: rustup show
-
-      - name: Show rustup
-        run: rustup toolchain install stable --profile minimal
-      - run: cargo build
+      - name: Run tests
+        run: cargo test
       - uses: taiki-e/upload-rust-binary-action@v1
+        if: success()
         with:
           bin: vamp-ir
           target: ${{ matrix.target }}
-          include: LICENSE-APACHE,LICENSE-MIT,README.md
+          ref: refs/tags/1
+          asset: LICENSE-APACHE,LICENSE-MIT,README.md
           token: ${{ secrets.GITHUB_TOKEN }}
+          profile: release
