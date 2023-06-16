@@ -1,6 +1,6 @@
 # Build VampIR binary with all its dependencies statically linked
 
-name: test-cargo-release
+name: image-test-cargo-release
 
 permissions:
   contents: write

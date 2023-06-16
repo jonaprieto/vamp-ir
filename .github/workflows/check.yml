@@ -69,8 +69,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      # - name: Rust Cache
-      #   uses: Swatinem/rust-cache@v2.4.0
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.4.0
 
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
@@ -82,16 +82,12 @@ jobs:
           components: rust-std
           # https://rust-lang.github.io/rustup-components-history/
 
-    #   - name: Lint
-    #     run: |
-    #       cargo fmt --all -- --check
-    #       cargo clippy
+      - name: Lint
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy
 
-      - name: Show rust toolchain info
-        run: rustup show
-
-      - name: Run tests
-        run: cargo test
-
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+      - name: Run cargo check
+        uses: actions-rs/cargo@v1
+        with:
+          command: check

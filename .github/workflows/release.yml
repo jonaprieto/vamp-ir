@@ -52,40 +52,34 @@ jobs:
     strategy:
       matrix:
         include:
+          # Linux targets
           - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
-            toolchain: stable
-          # - target: aarch64-unknown-linux-gnu
-          #   os: ubuntu-latest
-          #   build_tool: cargo
-          # - target: aarch64-apple-darwin
-          #   os: macos-latest
-          #   build_tool: cargo
-          # - target: x86_64-unknown-linux-gnu
-          #   os: ubuntu-latest
-          #   build_tool: cargo
-          # - target: x86_64-apple-darwin
-          #   os: macos-latest
-          #   build_tool: cargo
-          # - target: universal-apple-darwin
-          #   os: macos-latest
-          #   build_tool: cargo
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+          # macOS targets
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.4.0
+
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: ${{ matrix.toolchain }}
+          toolchain: stable
           profile: minimal
           target: ${{ matrix.target }}
           override: true
-          components: rustfmt
+          components: rust-std,rustfmt
           # https://rust-lang.github.io/rustup-components-history/
 
       # - name: Lint
