@@ -94,8 +94,9 @@ jobs:
           cargo fmt --all -- --check
           cargo clippy || true
 
-      - name: Run tests
-        run: cargo test --verbose --lib
+      # uncomment this once there tests to run
+      # - name: Run tests
+      #   run: cargo test --verbose
 
       - name: release
         if: success()
