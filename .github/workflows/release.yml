@@ -15,6 +15,11 @@ on:
       tag:
         description: "version to release"
         required: true
+  push:
+    tags:
+      - '*'
+  release:
+    types: [created]
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.run_id }}"
@@ -44,11 +49,12 @@ jobs:
         with:
           changelog: CHANGELOG.md
           branch: main
-          ref: refs/tags/${{ github.event.inputs.tag }}
+          ref: refs/tags/${{ github.event.inputs.tag || github.ref }}
           draft: ${{ github.event.inputs.release-type == 'pre-release' }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
+    needs: create-release
     strategy:
       matrix:
         include:
@@ -93,7 +99,7 @@ jobs:
         with:
           bin: vamp-ir
           target: ${{ matrix.target }}
-          ref: refs/tags/1
+          ref: refs/tags/${{ github.event.inputs.tag }}
           asset: LICENSE-APACHE,LICENSE-MIT,README.md
           token: ${{ secrets.GITHUB_TOKEN }}
           profile: release
