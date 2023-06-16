@@ -1,0 +1,90 @@
+name: Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+        - main
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+  RUSTFLAGS: -D warnings
+  RUSTUP_MAX_RETRIES: 10
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  upload-assets:
+    strategy:
+      matrix:
+        include:
+            - target: x86_64-unknown-linux-musl
+              os: ubuntu-latest
+              build_tool: cargo
+              rust-version: stable
+            
+        # - target: aarch64-unknown-linux-gnu
+        #   os: ubuntu-latest
+        #   build_tool: cargo
+        #   rust-version: stable
+        #   - target: aarch64-apple-darwin
+        #     os: macos-latest
+        #     build_tool: cargo
+        #   - target: x86_64-unknown-linux-gnu
+        #     os: ubuntu-latest
+        #     build_tool: cargo
+        #   - target: x86_64-apple-darwin
+        #     os: macos-latest
+        #     build_tool: cargo
+        #   - target: universal-apple-darwin
+        #     os: macos-latest
+        #     build_tool: cargo
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust-version }}
+          override: true
+          components: rustfmt
+          target: ${{ matrix.target }}
+
+
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/            
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+    #   - name: Lint
+    #     run: |
+    #       cargo fmt --all -- --check
+    #       cargo clippy
+
+      - name: Show rust toolchain info
+        run: rustup show
+
+      - run: cargo build
+    #   - uses: taiki-e/upload-rust-binary-action@v1
+    #     with:
+    #       bin: vamp-ir
+    #       target: ${{ matrix.target }}
+    #       include: LICENSE-APACHE,LICENSE-MIT,README.md
+    #       token: ${{ secrets.GITHUB_TOKEN }}
