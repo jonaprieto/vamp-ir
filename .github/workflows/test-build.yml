@@ -1,4 +1,4 @@
-name: check-build-project
+name: test-build
 
 permissions:
   contents: write
