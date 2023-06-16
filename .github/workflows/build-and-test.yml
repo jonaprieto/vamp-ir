@@ -81,7 +81,7 @@ jobs:
           profile: minimal
           target: ${{ matrix.target }}
           override: true
-          components: rustfmt
+          components: rustfmt, rust-std
           # https://rust-lang.github.io/rustup-components-history/
 
     #   - name: Lint
