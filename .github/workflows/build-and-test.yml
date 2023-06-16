@@ -1,4 +1,4 @@
-name: Release
+name: build-and-test
 
 permissions:
   contents: write
@@ -55,14 +55,12 @@ jobs:
           # Linux targets
           - target: aarch64-unknown-linux-musl
             os: ubuntu-latest
-          - target: aarch64-unknown-linux-gnu
+          - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
           # macOS targets
           - target: aarch64-apple-darwin
             os: macos-latest
           - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: universal-apple-darwin
             os: macos-latest
 
     runs-on: ${{ matrix.os }}
@@ -71,17 +69,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.4.0
+      # - name: Rust Cache
+      #   uses: Swatinem/rust-cache@v2.4.0
 
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: nightly
           profile: minimal
           target: ${{ matrix.target }}
           override: true
-          components: rustfmt, rust-std
+          components: rust-std
           # https://rust-lang.github.io/rustup-components-history/
 
     #   - name: Lint
