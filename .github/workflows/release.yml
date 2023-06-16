@@ -13,7 +13,7 @@ on:
           - "draft"
           - "release"
       tag:
-        description: "version to release"
+        description: "version to release major.minor.patch"
         required: true
   push:
     tags:
