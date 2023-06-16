@@ -19,7 +19,7 @@ on:
           - "pre-release"
           - "release"
       tag:
-        description: "version to release major.minor.patch"
+        description: "version to release (e.g. major.minor.patch)"
         required: true
 
 
@@ -47,7 +47,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Create release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/') || ${{ github.event.inputs.tag != '' }}
         with:
           # body_path: CHANGELOG.md # for notable changes
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -55,6 +54,7 @@ jobs:
             LICENSE-MIT
             LICENSE-APACHE
             README.md
+          tag_name: ${{ github.event.inputs.tag }}
           draft: ${{ github.event.inputs.draft }}
           prerelease: ${{ github.event.inputs.release-type == 'pre-release' }}
           fail_on_unmatched_files: true

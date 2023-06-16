@@ -50,8 +50,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.4.0
+      # - name: Rust Cache
+      #   uses: Swatinem/rust-cache@v2.4.0
 
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
