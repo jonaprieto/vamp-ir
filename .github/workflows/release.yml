@@ -48,7 +48,7 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
-          # body_path: CHANGELOG.md # for notable changes
+          body_path: CHANGELOG.md # for notable changes
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
             LICENSE-MIT
@@ -58,7 +58,6 @@ jobs:
           draft: ${{ github.event.inputs.draft }}
           prerelease: ${{ github.event.inputs.release-type == 'pre-release' }}
           fail_on_unmatched_files: true
-          generate_release_notes: true
 
   upload-assets:
     needs: create-release

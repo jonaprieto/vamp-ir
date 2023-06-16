@@ -29,30 +29,22 @@ defaults:
     shell: bash
 
 jobs:
-  test:
+  test-linux:
     strategy:
       matrix:
         include:
-          # Linux targets
           - target: aarch64-unknown-linux-musl
-            os: ubuntu-latest
+            arch: aarch64-musl
           - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
-          # macOS targets
-          - target: aarch64-apple-darwin
-            os: macos-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-
-    runs-on: ${{ matrix.os }}
+            arch: x86_64-musl
+    runs-on: ubuntu-latest
+    container: messense/rust-musl-cross:${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
-      # - name: Rust Cache
-      #   uses: Swatinem/rust-cache@v2.4.0
-
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.4.0
       - name: Install rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -61,14 +53,13 @@ jobs:
           target: ${{ matrix.target }}
           override: true
           components: rust-std,rustfmt,clippy
-
       - name: Lint
         run: |
           cargo fmt --all -- --check
           cargo clippy || true
-      - run: cargo test --verbose
-      - name: Install cross-compilation tools
-        uses: taiki-e/setup-cross-toolchain-action@v1
-        with:
-          target: ${{ matrix.target }}
-      - run: cargo build --verbose --release --target ${{ matrix.target }}
+      - name: Run tests
+        run: cargo test --verbose
+      - name: release
+        if: success()
+        run: cargo build --release --target=${{ matrix.target }}
+
