@@ -63,3 +63,39 @@ jobs:
         if: success()
         run: cargo build --release --target=${{ matrix.target }}
 
+  test-macos:
+    strategy:
+      matrix:
+        include:
+          - target:
+            - aarch64-apple-darwin
+            - x86_64-apple-darwin
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.4.0
+
+      - name: Install rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          profile: minimal
+          target: ${{ matrix.target }}
+          override: true
+          components: rust-std,rustfmt,clippy
+
+      - name: Lint
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy || true
+
+      - name: Run tests
+        run: cargo test --verbose --lib
+
+      - name: release
+        if: success()
+        run: cargo build --release --target=${{ matrix.target }}
