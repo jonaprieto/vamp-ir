@@ -16,10 +16,6 @@ on:
         description: "version to release"
         required: true
 
-  push:
-    branches:
-      - main
-
 concurrency:
   group: "${{ github.workflow }}-${{ github.head_ref || github.run_id }}"
   cancel-in-progress: true
@@ -37,20 +33,20 @@ defaults:
     shell: bash
 
 jobs:
-  # create-release:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Create a draft release
-  #       uses: taiki-e/create-gh-release-action@v1
-  #       with:
-  #         changelog: CHANGELOG.md
-  #         branch: main
-  #         # ref: refs/tags/${{ github.event.inputs.tag }}
-  #         draft: ${{ github.event.inputs.release-type == 'pre-release' }}
-  #         token: ${{ secrets.GITHUB_TOKEN }}
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Create release
+        uses: taiki-e/create-gh-release-action@v1
+        with:
+          changelog: CHANGELOG.md
+          branch: main
+          ref: refs/tags/${{ github.event.inputs.tag }}
+          draft: ${{ github.event.inputs.release-type == 'pre-release' }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
     strategy:
@@ -85,11 +81,6 @@ jobs:
           override: true
           components: rust-std,rustfmt
           # https://rust-lang.github.io/rustup-components-history/
-
-      # - name: Lint
-      #   run: |
-      #     cargo fmt --all -- --check
-      #     cargo clippy
 
       - name: Show rust toolchain info
         run: rustup show
