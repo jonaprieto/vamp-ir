@@ -15,11 +15,15 @@ on:
       tag:
         description: "version to release"
         required: true
-        default: "v0.0.0"
+
   push:
     branches:
       - main
 
+concurrency:
+  group: "${{ github.workflow }}-${{ github.head_ref || github.run_id }}"
+  cancel-in-progress: true
+      
 env:
   CARGO_INCREMENTAL: 0
   CARGO_NET_RETRY: 10
@@ -89,8 +93,10 @@ jobs:
 
       - name: Show rust toolchain info
         run: rustup show
+
       - name: Run tests
         run: cargo test
+
       - uses: taiki-e/upload-rust-binary-action@v1
         if: success()
         with:
