@@ -57,8 +57,11 @@ jobs:
         run: |
           cargo fmt --all -- --check
           cargo clippy || true
-      - name: Run tests
-        run: cargo test --verbose
+
+      # uncomment this once there tests to run
+      # - name: Run tests
+      #   run: cargo test --verbose
+      
       - name: release
         if: success()
         run: cargo build --release --target=${{ matrix.target }}
