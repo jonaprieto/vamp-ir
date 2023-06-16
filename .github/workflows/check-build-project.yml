@@ -29,7 +29,8 @@ defaults:
     shell: bash
 
 jobs:
-  : strategy:
+  test:
+    strategy:
       matrix:
         include:
           # Linux targets
