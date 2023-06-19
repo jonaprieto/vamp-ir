@@ -4,11 +4,6 @@ permissions:
   contents: write
 
 on:
-  workflow_run:
-    workflows: ["test-build"]
-    types:
-      - completed
-
   workflow_dispatch:
     inputs:
       draft:
@@ -45,11 +40,18 @@ defaults:
     shell: bash
 
 jobs:
+  test-codebase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: test-build
+        uses: ./.github/workflows/test-build.yml
+
   create-release:
     runs-on: ubuntu-latest
     steps:
-      - if: ${{ github.event.workflow_run.conclusion == 'success' }}
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v3
       - name: Create release
         uses: softprops/action-gh-release@v1
